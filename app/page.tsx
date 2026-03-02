@@ -1,42 +1,21 @@
 'use client'; 
 
-import { useAudioStore } from '../store/useAudioStore';
+import { useRadio } from '../context/RadioContext';
 import { Play, Radio, Music, Disc, Bird } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const DEMO_STATIONS = [
-  {
-    id: '1',
-    name: 'Indie & Rock',
-    listen_url: 'https://radio.zazuradio.com/listen/zazu_radio/radio.mp3',
-    genre: 'Rock n Roll / Indie',
-    description: 'Gitare, dobar ritam i zvuk sa pucketanjem.',
-  },
-  {
-    id: 'rock',
-    name: 'Zazu Rock',
-    listen_url: 'https://radio.zazuradio.com/listen/zazu_rock/radio.mp3',
-    api_url: 'https://radio.zazuradio.com/api/nowplaying/zazu_rock'
-  },
-];
-
 export default function Home() {
-  const { currentStation, setCurrentStation, isPlaying, togglePlayPause, songHistory } = useAudioStore();
+  // Vučemo podatke iz našeg novog mozga
+  const { stations, activeStation, isPlaying, togglePlay, setActiveStation } = useRadio();
 
-  const handleStationClick = (station: any) => {
-    if (currentStation?.id === station.id) {
-      togglePlayPause();
-    } else {
-      setCurrentStation(station);
-    }
-  };
+  // Istorija pjesama od trenutno aktivne stanice
+  const songHistory = activeStation?.song_history || [];
 
   return (
     <div className="max-w-7xl mx-auto px-6 pt-20">
       
-      {/* Hero Sekcija */}
+      {/* Hero Sekcija (TVOJ ORIGINALNI DIZAJN) */}
       <div className="mb-24 text-center relative">
-        {/* Ikona ptice sa vatrenim odsjajem */}
         <div className="flex justify-center mb-8 relative">
             <div className="absolute inset-0 bg-orange-600 blur-[60px] opacity-40 rounded-full"></div>
             <div className="relative w-24 h-24 bg-gradient-to-br from-[#1a1c2e] to-[#0a0c14] border border-orange-500/30 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(234,88,12,0.5)]">
@@ -52,7 +31,7 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Grid sa VINYL Stanicama */}
+      {/* Grid sa DINAMIČKIM VINYL Stanicama */}
       <div className="mb-20">
         <div className="flex items-center mb-12">
             <Disc className="w-8 h-8 mr-4 text-orange-500 animate-spin-slow" />
@@ -62,8 +41,8 @@ export default function Home() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 px-4">
-          {DEMO_STATIONS.map((station) => {
-            const isThisStationPlaying = currentStation?.id === station.id && isPlaying;
+          {stations.map((station) => {
+            const isThisStationPlaying = activeStation?.id === station.id && isPlaying;
 
             return (
               <div 
@@ -73,32 +52,38 @@ export default function Home() {
                     ? 'bg-gradient-to-br from-[#1a1c2e] to-[#0a0c14] border-2 border-orange-500/50 shadow-[0_0_60px_rgba(234,88,12,0.3)]' 
                     : 'bg-[#12141d] border-2 border-[#1f2230] hover:border-orange-500/30 hover:bg-[#151824]'
                 }`}
-                onClick={() => handleStationClick(station)}
+                onClick={() => {
+                  if (activeStation?.id === station.id) {
+                    togglePlay();
+                  } else {
+                    setActiveStation(station);
+                  }
+                }}
               >
                 <div className="flex flex-col md:flex-row items-center">
                     {/* LIJEVI DIO: Vinyl Ploča koja se okreće */}
                     <div className="relative w-48 h-48 flex-shrink-0 mb-6 md:mb-0 md:mr-10">
-                        {/* Pozadinski sjaj kad je aktivno */}
                         {isThisStationPlaying && <div className="absolute inset-0 bg-orange-600 rounded-full blur-[50px] opacity-40"></div>}
                         
-                        {/* Glavna ploča */}
                         <motion.div
                              animate={{ rotate: isThisStationPlaying ? 360 : 0 }}
                              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                              className={`w-full h-full rounded-full bg-[#0a0a0a] border-4 ${isThisStationPlaying ? 'border-orange-500' : 'border-[#2a2d3d]'} flex items-center justify-center relative overflow-hidden shadow-2xl`}
-                             style={{ backgroundImage: 'repeating-radial-gradient(circle at center, #1a1a1a 0, #1a1a1a 2px, #0a0a0a 3px, #0a0a0a 6px)' }} // Vinyl brazde
+                             style={{ backgroundImage: 'repeating-radial-gradient(circle at center, #1a1a1a 0, #1a1a1a 2px, #0a0a0a 3px, #0a0a0a 6px)' }}
                         >
-                            {/* Centar ploče (Label) */}
-                            <div className={`w-20 h-20 rounded-full ${isThisStationPlaying ? 'bg-orange-600' : 'bg-[#2a2d3d]'} flex items-center justify-center border-4 border-[#0a0a0a] z-10 transition-colors`}>
+                            <div className={`w-20 h-20 rounded-full ${isThisStationPlaying ? 'bg-orange-600' : 'bg-[#2a2d3d]'} flex items-center justify-center border-4 border-[#0a0a0a] z-10 transition-colors relative overflow-hidden`}>
+                                {/* Ako stanica ima sliku trenutne pjesme, prikazi je na labelu ploče! */}
+                                {isThisStationPlaying && station.now_playing?.song?.art && (
+                                  <img src={station.now_playing.song.art} className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay" alt="" />
+                                )}
                                 {isThisStationPlaying ? (
-                                    <Music className="w-8 h-8 text-white animate-pulse" />
+                                    <Music className="w-8 h-8 text-white animate-pulse relative z-10" />
                                 ) : (
-                                    <Radio className="w-8 h-8 text-slate-500 group-hover:text-slate-300" />
+                                    <Radio className="w-8 h-8 text-slate-500 group-hover:text-slate-300 relative z-10" />
                                 )}
                             </div>
                         </motion.div>
 
-                        {/* Play dugme preko ploče */}
                         <div className={`absolute bottom-0 right-0 translate-x-2 translate-y-2 w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 z-20 ${
                             isThisStationPlaying ? 'bg-slate-100 text-orange-600 scale-110' : 'bg-orange-600 text-white group-hover:scale-110 group-hover:bg-orange-500'
                         }`}>
@@ -113,11 +98,11 @@ export default function Home() {
                     {/* DESNI DIO: Tekst */}
                     <div className="text-center md:text-left">
                         <span className="inline-block px-3 py-1 bg-[#1f2230] rounded text-xs font-bold text-orange-400 mb-4 tracking-wider uppercase border border-orange-500/20">
-                            {station.genre}
+                            PREMIUM STREAM
                         </span>
                         <h3 className="text-3xl font-black text-slate-100 mb-3 uppercase tracking-tight">{station.name}</h3>
-                        <p className="text-slate-400 font-medium leading-relaxed text-lg">
-                            {station.description}
+                        <p className="text-slate-400 font-medium leading-relaxed text-lg truncate">
+                            {station.now_playing?.song?.title || 'Učitavanje zvuka...'}
                         </p>
                     </div>
                 </div>
@@ -127,15 +112,14 @@ export default function Home() {
         </div>
       </div>
 
-      {/* SEKCIJA: Istorija Pjesama (Refined) */}
+      {/* SEKCIJA: Istorija Pjesama */}
       {songHistory.length > 0 && (
         <div className="mt-24 mb-12 relative">
-          {/* Pozadinski sjaj */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-orange-600/10 blur-[100px] pointer-events-none"></div>
           
           <h2 className="text-2xl font-bold text-slate-100 mb-8 flex items-center justify-center uppercase tracking-wider relative z-10">
             <Music className="w-6 h-6 mr-3 text-orange-500" />
-            Upravo Vrti
+            Upravo Vrti ({activeStation?.name})
           </h2>
           
           <div className="bg-[#12141d]/80 backdrop-blur-xl border border-[#1f2230] rounded-3xl p-6 shadow-2xl relative z-10 max-w-4xl mx-auto">
