@@ -2,19 +2,20 @@
 @import "tailwindcss";
 
 @theme {
-  --color-zazu-turquoise: #05D5FA;
-  --color-zazu-orange: #FF7A00;
-  --color-zazu-red: #FF3366;
-  --color-zazu-dark: #12141D;
-  --color-zazu-darker: #080A10;
+  --color-zazu-turquoise: #05D5FA; /* Dominantna */
+  --color-zazu-orange: #FF7A00;   /* Akcentna */
+  --color-zazu-red: #FF3366;      /* Jarko crvena */
+  --color-zazu-white: #FFFFFF;    /* Čista bijela */
+  --color-zazu-dark: #121212;     /* Tamno siva/crna za elemente */
+  --color-zazu-darker: #000000;   /* Čista crna za dubinu pozadine */
   
   --animate-spin-slow: spin 4s linear infinite;
 }
 
-/* Osnovna podešavanja za tamnu pozadinu */
 @layer base {
   body {
+    /* Mijenjamo u potpuno crnu kako bi boje iskočile */
     background-color: var(--color-zazu-darker);
-    color: white;
+    color: var(--color-zazu-white);
   }
 }

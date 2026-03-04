@@ -1,17 +1,21 @@
+// components/audio/GlobalPlayer.tsx
 'use client'; 
 
 import { Play, Pause, Volume2, Disc } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAudioStore } from '../../store/useAudioStore';
 
-// 1. IMPORTUJEMO NAŠ MOTOR (Provjeri da li je putanja tačna)
+// 1. IMPORTUJEMO NAŠ MOTOR
 import { useAudioEngine } from '../../hooks/useAudioEngine';
 
+// Logo koji ide u centar ploče (kao na glavnoj stranici)
+const ZAZU_LOGO_CENTER = '/images/Zazu-Radio-logo.png'; 
+
 export default function GlobalPlayer() {
-  // 2. PALIMO MOTOR! (Ovo će pokrenuti fetchStations i Audio logiku u pozadini)
+  // 2. PALIMO MOTOR! 
   useAudioEngine(); 
 
-  // 3. Vučemo podatke iz Zustand mozga (koji se sada automatski puni zahvaljujući motoru)
+  // 3. Vučemo podatke iz Zustand mozga
   const { stations, activeStationId, isPlaying, volume, togglePlay, setVolume } = useAudioStore();
 
   const activeStation = stations.find(s => s.id === activeStationId);
@@ -36,33 +40,42 @@ export default function GlobalPlayer() {
       {/* Tirkizni Glow na dnu ako svira muzika */}
       {isPlaying && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-20 bg-zazu-turquoise blur-[100px] opacity-10 pointer-events-none"></div>}
 
-      {/* LIJEVA SEKCIJA: Detaljna Vinyl Ploča */}
+      {/* LIJEVA SEKCIJA: Detaljna Vinyl Ploča (Usklađena sa glavnim dizajnom) */}
       <div className="flex items-center w-1/3 relative z-10">
         <div className="relative w-28 h-20 mr-5 flex items-center">
           
-          {/* Ploča koja se izvlači i rotira */}
+          {/* Ploča koja se izvlači (Motion kontroliše samo "klizanje" van omota) */}
           <motion.div 
-            animate={{ x: isPlaying ? 40 : 0, rotate: isPlaying ? 360 : 0 }}
-            transition={{ x: { type: "spring", stiffness: 80, damping: 15 }, rotate: { duration: 3, repeat: Infinity, ease: "linear" } }}
-            className={`absolute left-0 w-20 h-20 bg-[#050505] rounded-full flex items-center justify-center border-2 z-0 shadow-xl ${isPlaying ? 'border-zazu-turquoise/50' : 'border-[#111]'}`}
-            style={{ backgroundImage: 'repeating-radial-gradient(circle at center, #111 0, #111 1px, #050505 2px, #050505 4px)' }}
+            animate={{ x: isPlaying ? 50 : 0 }} // Izvlači se tačno toliko da viri ~70%
+            transition={{ type: "spring", stiffness: 80, damping: 15 }}
+            className="absolute left-0 w-20 h-20 z-0 flex items-center justify-center"
           >
-            {/* Labela na ploči */}
-            <div className={`w-7 h-7 rounded-full overflow-hidden border z-10 relative ${isPlaying ? 'bg-zazu-orange border-zazu-orange/50' : 'bg-zazu-dark border-[#222]'}`}>
-              {song.art ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={song.art} alt="Label" className="w-full h-full object-cover opacity-80 mix-blend-overlay" />
-              ) : (
-                // Ako nema slike, stavljamo mali logo
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src="/images/Zazu-Radio-logo.png" alt="Zazu" className="w-full h-full object-contain opacity-50" style={{ mixBlendMode: 'screen' }} />
-              )}
+            {/* SAMA PLOČA (CSS animacija za savršeno zaustavljanje bez trzanja) */}
+            <div
+              className="relative w-full h-full rounded-full bg-black border border-[#222] shadow-[10px_0_20px_rgba(0,0,0,0.8)] flex items-center justify-center animate-[spin_4s_linear_infinite]"
+              style={{ 
+                animationPlayState: isPlaying ? 'running' : 'paused' 
+              }}
+            >
+              {/* Žljebovi ploče i rotirajući bijeli odsjaj */}
+              <div 
+                className="absolute inset-0 rounded-full"
+                style={{ 
+                    backgroundImage: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.15) 20deg, transparent 40deg, transparent 180deg, rgba(255,255,255,0.15) 200deg, transparent 220deg), repeating-radial-gradient(circle at center, #111 0, #000 1.5px, #111 3px, #000 4px)' 
+                }}
+              />
+
+              {/* ROTIRAJUĆI CENTAR (Label sa tvojom slikom) */}
+              <div className="relative w-[36%] h-[36%] rounded-full flex items-center justify-center border-2 border-[#111] shadow-[0_0_10px_rgba(0,0,0,0.8)] z-10 overflow-hidden bg-black">
+                  <img src={ZAZU_LOGO_CENTER} alt="Vinyl Label" className="w-full h-full object-cover" />
+                  
+                  {/* Rupa na sredini ploče */}
+                  <div className="absolute w-1.5 h-1.5 bg-black rounded-full border border-[#333] shadow-inner"></div>
+              </div>
             </div>
-            {/* Rupica na sredini */}
-            <div className="absolute w-1.5 h-1.5 bg-[#050505] rounded-full z-20 border border-[#222]"></div>
           </motion.div>
 
-          {/* Omot Albuma */}
+          {/* Omot Albuma (Fiksiran ispred ploče) */}
           <div className="relative w-20 h-20 bg-zazu-dark rounded-xl overflow-hidden z-10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-[#1f2230]">
             {song.art ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -77,6 +90,7 @@ export default function GlobalPlayer() {
           </div>
         </div>
         
+        {/* Informacije o pjesmi */}
         <div className="flex flex-col truncate pr-4">
           <span className="text-white font-black truncate text-xl uppercase tracking-tight drop-shadow-md">
             {song.title}
@@ -120,11 +134,9 @@ export default function GlobalPlayer() {
               step="0.01" 
               value={volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              // Sakrivamo defaultni izgled slidera, crtamo ga preko CSS-a
               className="absolute w-full h-1.5 appearance-none cursor-pointer z-20 opacity-0"
             />
             
-            {/* Prilagođeni izgled trake za zvuk */}
             <div className="absolute w-full h-1 bg-[#1f2230] rounded-full overflow-hidden z-10 pointer-events-none">
               <div 
                 className="h-full bg-zazu-turquoise transition-all duration-100 ease-out"
@@ -132,7 +144,6 @@ export default function GlobalPlayer() {
               ></div>
             </div>
             
-            {/* Oznake (crtice) za jačinu zvuka poput prave DJ opreme */}
             <div className="absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-0.5 pointer-events-none z-0">
                 {[...Array(11)].map((_, i) => (
                     <div key={i} className={`w-[1px] h-2 ${i % 5 === 0 ? 'h-3 bg-slate-600' : 'bg-[#1f2230]'}`}></div>
