@@ -14,32 +14,41 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+    <nav className="bg-zazu-darker/90 backdrop-blur-xl border-b border-[#1f2230] sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-              <Radio className="text-white w-5 h-5" />
-            </div>
-            <span className="text-xl font-bold text-slate-100 tracking-tight">Premium<span className="text-indigo-400">Radio</span></span>
+          {/* LOGO SEKCIJA */}
+          <Link href="/" className="flex items-center gap-3 group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/images/Zazu-Radio-logo.png" 
+              alt="Zazu Logo" 
+              className="w-48 h-48 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(5,213,250,0.3)]" 
+              onError={(e) => {
+                // Ako logo još nije učitan, sakrij ga da ne lomi dizajn
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
           </Link>
 
-          {/* Meni linkovi */}
-          <div className="hidden md:flex space-x-8">
+          {/* MENI LINKOVI */}
+          <div className="hidden md:flex space-x-10 h-full">
             {navItems.map((item) => {
-              const isActive = pathname === item.path;
+              // Provjera da li je aktivan tab (sa malim fix-om za podstranice)
+              const isActive = pathname === item.path || (pathname.startsWith(item.path) && item.path !== '/');
+              
               return (
                 <Link 
                   key={item.path} 
                   href={item.path}
-                  className={`flex items-center text-sm font-medium transition-colors ${
+                  className={`flex items-center text-sm font-bold uppercase tracking-widest transition-all h-full border-b-2 mt-[2px] ${
                     isActive 
-                      ? 'text-indigo-400 border-b-2 border-indigo-400' 
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'text-zazu-turquoise border-zazu-turquoise drop-shadow-[0_0_10px_rgba(5,213,250,0.5)]' 
+                      : 'text-slate-400 border-transparent hover:text-white hover:border-[#1f2230]'
                   }`}
                 >
+                  {/* Ikonica će dobiti boju teksta iz parent klase automatski */}
                   {item.icon}
                   {item.name}
                 </Link>
@@ -49,7 +58,7 @@ export default function Navigation() {
 
           {/* Ovdje ćemo kasnije ubaciti tvoj "Language Switcher" (BS/EN/DE) */}
           <div className="hidden md:block">
-            <span className="text-xs text-slate-500 font-medium px-3 py-1 bg-slate-800 rounded-full cursor-pointer hover:bg-slate-700 transition-colors">
+            <span className="text-xs font-bold uppercase tracking-widest px-5 py-2.5 bg-[#0f111a] border border-[#1f2230] text-slate-400 rounded-full cursor-pointer hover:border-zazu-turquoise/50 hover:text-zazu-turquoise hover:shadow-[0_0_15px_rgba(5,213,250,0.15)] transition-all">
               Jezik (Uskoro)
             </span>
           </div>
