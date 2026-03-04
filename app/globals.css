@@ -1,1 +1,20 @@
+/* app/globals.css */
 @import "tailwindcss";
+
+@theme {
+  --color-zazu-turquoise: #05D5FA;
+  --color-zazu-orange: #FF7A00;
+  --color-zazu-red: #FF3366;
+  --color-zazu-dark: #12141D;
+  --color-zazu-darker: #080A10;
+  
+  --animate-spin-slow: spin 4s linear infinite;
+}
+
+/* Osnovna podešavanja za tamnu pozadinu */
+@layer base {
+  body {
+    background-color: var(--color-zazu-darker);
+    color: white;
+  }
+}

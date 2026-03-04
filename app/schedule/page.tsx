@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRadio } from '../../context/RadioContext';
+import { useAudioStore } from '../../store/useAudioStore'; // NOVI IMPORT
 import { Clock, Radio, Info, Disc, X, Calendar as CalendarIcon, Music } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,7 +17,8 @@ interface ScheduleItem {
 }
 
 export default function SchedulePage() {
-  const { stations, activeStation } = useRadio();
+  // Vučemo podatke iz novog Zustand store-a umjesto Contexta
+  const { stations, activeStationId } = useAudioStore();
   
   // Stanja aplikacije
   const [selectedTabId, setSelectedTabId] = useState<number | null>(null);
@@ -30,9 +31,9 @@ export default function SchedulePage() {
   // Postavljanje početnog taba na stanicu koja trenutno svira
   useEffect(() => {
     if (selectedTabId === null && stations.length > 0) {
-      setSelectedTabId(activeStation?.id || stations[0].id);
+      setSelectedTabId(activeStationId || stations[0].id);
     }
-  }, [stations, activeStation, selectedTabId]);
+  }, [stations, activeStationId, selectedTabId]);
 
   // Povlačenje rasporeda kada se promijeni tab
   useEffect(() => {
