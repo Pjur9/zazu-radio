@@ -86,9 +86,16 @@ export const useAudioEngine = () => {
     audioRef.current.volume = volume;
   }, [volume]);
 
-  // 3. PLAY / PAUSE LOGIKA (Osjetljivo: Reaguje SAMO na play/pause i promjenu same stanice)
+  // 3. PLAY / PAUSE LOGIKA (Sa Edge Case zaštitama)
   useEffect(() => {
     if (!audioRef.current) return;
+
+    // EDGE CASE 1: Ako je play pritisnut, ali nema listen_url (stanica ne postoji ili je API vratio prazno)
+    if (isPlaying && (!activeStation || !activeStation.listen_url)) {
+      console.warn("Nema dostupnog listen_url za ovu stanicu. Zaustavljam reprodukciju.");
+      setIsPlaying(false);
+      return;
+    }
 
     if (isPlaying && activeStation?.listen_url) {
       // Kada puštamo, dodajemo "?nocache=..." sa trenutnim vremenom na URL.
@@ -96,9 +103,11 @@ export const useAudioEngine = () => {
       const liveUrl = `${activeStation.listen_url}?nocache=${Date.now()}`;
       
       audioRef.current.src = liveUrl;
+      
+      // EDGE CASE 2: Hvatamo grešku ako stream pukne ili browser blokira autoplay
       audioRef.current.play().catch(e => {
-        console.error("Browser je blokirao autoplay. Korisnik mora kliknuti na ekran.", e);
-        setIsPlaying(false);
+        console.error("Audio playback greška ili je browser blokirao stream:", e);
+        setIsPlaying(false); // Automatski gasi animacije i vraća dugme na Play
       });
     } else {
       // Kada korisnik pauzira, zapravo zaustavljamo stream i ubijamo bafer
@@ -108,19 +117,25 @@ export const useAudioEngine = () => {
     }
   }, [activeStation?.listen_url, isPlaying, setIsPlaying]);
 
-  // 4. MEDIA SESSION API (Integracija sa hardverom: Lock screen & Auto Bluetooth)
+  // 4. MEDIA SESSION API (Lock screen i Edge Case za Fallback sliku)
   useEffect(() => {
     // Ažuriramo lock screen samo kada se zaista promijeni IME PJESME
     if ('mediaSession' in navigator && activeStation) {
+      
+      // EDGE CASE 3: Ako pjesma nema svoj art, vučemo iz našeg foldera
+      // Koristimo window.location.origin da OS (Android/iOS) dobije puni apsolutni link do slike
+      const artUrl = activeStation.now_playing?.song?.art 
+        || `${window.location.origin}/images/Zazu-Radio-logo.png`;
+
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: activeStation.now_playing?.song?.title || 'Učitavanje...',
+        title: activeStation.now_playing?.song?.title || 'Zazu Stream', // Edge case ako nema naslova
         artist: activeStation.now_playing?.song?.artist || activeStation.name,
-        album: 'Hornbill Vinyl Radio', // Naziv tvog portala
+        album: 'Zazu Radio', 
         artwork: [
           { 
-            src: activeStation.now_playing?.song?.art || 'https://radio.zazuradio.com/static/img/generic_song.jpg', 
+            src: artUrl, 
             sizes: '512x512', 
-            type: 'image/jpeg' 
+            type: 'image/png' // Prebačeno na png zbog formata tvog logotipa
           }
         ]
       });
@@ -130,7 +145,7 @@ export const useAudioEngine = () => {
       navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
       navigator.mediaSession.setActionHandler('stop', () => setIsPlaying(false));
     }
-  }, [activeStation?.now_playing?.song?.title, activeStation?.name, setIsPlaying]);
+  }, [activeStation?.now_playing?.song?.title, activeStation?.now_playing?.song?.art, activeStation?.name, setIsPlaying]);
 
   return null;
 };
