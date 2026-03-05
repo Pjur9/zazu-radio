@@ -4,7 +4,7 @@ import GlobalPlayer from '../components/audio/GlobalPlayer';
 import Navigation from '../components/layout/Navigation';
 
 export const metadata = {
-  title: 'Hornbill Radio | Vinyl Vibe',
+  title: 'Zazu Radio',
   description: 'Najbolji zvuk u retro vinyl stilu.',
 };
 
